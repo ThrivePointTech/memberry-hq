@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Store,
+  Users,
   Wallet,
   QrCode,
 } from 'lucide-react'
@@ -13,6 +14,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/merchants', label: 'Merchants', icon: Store },
+  { href: '/customers', label: 'Customers', icon: Users },
   { href: '/payouts', label: 'Payouts', icon: Wallet },
   { href: '/qr', label: 'QR Export', icon: QrCode },
 ]
