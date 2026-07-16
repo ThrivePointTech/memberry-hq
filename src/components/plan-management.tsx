@@ -62,6 +62,7 @@ interface Plan {
   description: string | null
   tags: string[] | null
   status: string
+  paymongo_plan_id: string | null
 }
 
 interface PlanManagementProps {
@@ -109,6 +110,8 @@ export function PlanManagement({ plans, merchantId }: PlanManagementProps) {
   const [form, setForm] = useState<PlanFormState>(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [syncingId, setSyncingId] = useState<string | null>(null)
+  const [syncError, setSyncError] = useState<string | null>(null)
 
   function openCreate() {
     setForm(EMPTY_FORM)
@@ -200,6 +203,24 @@ export function PlanManagement({ plans, merchantId }: PlanManagementProps) {
     }
   }
 
+  async function handleSync(plan: Plan) {
+    setSyncingId(plan.id)
+    setSyncError(null)
+    try {
+      const res = await fetch(`/api/plans/${plan.id}/sync-paymongo`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setSyncError(data?.message ?? 'PayMongo sync failed.')
+        return
+      }
+      router.refresh()
+    } catch {
+      setSyncError('Network error. Please try again.')
+    } finally {
+      setSyncingId(null)
+    }
+  }
+
   const formOpen = createOpen || editTarget !== null
   const formTitle = createOpen ? 'Add Plan' : 'Edit Plan'
   const activePlans = plans.filter((p) => p.status !== 'archived')
@@ -212,6 +233,8 @@ export function PlanManagement({ plans, merchantId }: PlanManagementProps) {
         <Button size="sm" onClick={openCreate}>Add Plan</Button>
       </div>
 
+      {syncError && <p className="text-sm text-red-600">{syncError}</p>}
+
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -222,6 +245,7 @@ export function PlanManagement({ plans, merchantId }: PlanManagementProps) {
                 <TableHead>Billing</TableHead>
                 <TableHead>Allowance</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>PayMongo</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -236,7 +260,28 @@ export function PlanManagement({ plans, merchantId }: PlanManagementProps) {
                     <StatusBadge status={plan.status} type="merchant" />
                   </TableCell>
                   <TableCell>
+                    {plan.paymongo_plan_id ? (
+                      <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                        Synced
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        Not synced
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-2 justify-end">
+                      {!plan.paymongo_plan_id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSync(plan)}
+                          disabled={syncingId !== null}
+                        >
+                          {syncingId === plan.id ? 'Syncing…' : 'Sync'}
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" onClick={() => openEdit(plan)}>
                         Edit
                       </Button>
@@ -254,7 +299,7 @@ export function PlanManagement({ plans, merchantId }: PlanManagementProps) {
               ))}
               {activePlans.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-zinc-400 py-6">
+                  <TableCell colSpan={7} className="text-center text-zinc-400 py-6">
                     No plans
                   </TableCell>
                 </TableRow>

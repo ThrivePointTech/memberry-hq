@@ -20,6 +20,7 @@ interface Plan {
   allowance_amount: string | null
   description: string | null
   tags: string[] | null
+  paymongo_plan_id: string | null
 }
 
 interface PayoutAccount {
