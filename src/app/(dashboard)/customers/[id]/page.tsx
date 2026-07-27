@@ -3,6 +3,7 @@ import { formatPHP } from '@/lib/format'
 import { StatusBadge } from '@/components/status-badge'
 import { PaymongoSyncBadge } from '@/components/customers-table'
 import { CustomerSyncButton } from '@/components/customer-sync-button'
+import { SubscriptionCancelAction } from '@/components/subscription-cancel-action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -132,6 +133,7 @@ export default async function CustomerDetailPage({
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Period</TableHead>
+                  <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -147,6 +149,9 @@ export default async function CustomerDetailPage({
                     </TableCell>
                     <TableCell className="text-zinc-500 text-sm">
                       {formatDate(sub.period_start)} – {formatDate(sub.period_end)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <SubscriptionCancelAction customerId={customer.id} subscriptionId={sub.id} status={sub.status} />
                     </TableCell>
                   </TableRow>
                 ))}
