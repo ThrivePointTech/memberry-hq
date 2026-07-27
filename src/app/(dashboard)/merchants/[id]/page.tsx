@@ -5,7 +5,9 @@ import { MerchantStatusMenu } from '@/components/merchant-status-menu'
 import { PlanManagement } from '@/components/plan-management'
 import { QrTile } from '@/components/qr-tile'
 import { PayoutAccountEdit } from '@/components/payout-account-edit'
+import { PaymongoCredentialsEdit } from '@/components/paymongo-credentials-edit'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, TrendingUp } from 'lucide-react'
@@ -20,6 +22,7 @@ interface Plan {
   allowance_amount: string | null
   description: string | null
   tags: string[] | null
+  paymongo_plan_id: string | null
 }
 
 interface PayoutAccount {
@@ -36,6 +39,7 @@ interface MerchantDetail {
     name: string
     status: 'active' | 'pending' | 'suspended'
     created_at: string
+    paymongo_keys_configured: boolean
   }
   plans: Plan[]
   balance: number
@@ -69,7 +73,7 @@ export default async function MerchantDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm text-zinc-500">Balance</CardTitle>
@@ -102,6 +106,24 @@ export default async function MerchantDetailPage({
               </div>
             ) : (
               <p className="text-sm text-zinc-400">Not set</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-1">
+            <CardTitle className="text-sm text-zinc-500">PayMongo Credentials</CardTitle>
+            <PaymongoCredentialsEdit merchantId={merchant.id} />
+          </CardHeader>
+          <CardContent>
+            {merchant.paymongo_keys_configured ? (
+              <Badge className="border-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                Configured
+              </Badge>
+            ) : (
+              <Badge className="border-0 bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                Not Configured
+              </Badge>
             )}
           </CardContent>
         </Card>

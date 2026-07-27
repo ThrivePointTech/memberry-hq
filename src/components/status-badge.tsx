@@ -15,13 +15,25 @@ const subscriptionStatusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
 }
 
+const transactionStatusColors: Record<string, string> = {
+  paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  refunded: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+}
+
 interface StatusBadgeProps {
   status: string
-  type?: 'merchant' | 'subscription'
+  type?: 'merchant' | 'subscription' | 'transaction'
 }
 
 export function StatusBadge({ status, type = 'merchant' }: StatusBadgeProps) {
-  const colorMap = type === 'merchant' ? merchantStatusColors : subscriptionStatusColors
+  const colorMap =
+    type === 'merchant'
+      ? merchantStatusColors
+      : type === 'transaction'
+        ? transactionStatusColors
+        : subscriptionStatusColors
   const colorClass = colorMap[status] ?? 'bg-zinc-100 text-zinc-600'
 
   return (
