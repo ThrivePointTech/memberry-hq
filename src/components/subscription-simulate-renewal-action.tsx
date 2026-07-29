@@ -24,15 +24,18 @@ export function SubscriptionSimulateRenewalAction({
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [authorizationUrl, setAuthorizationUrl] = useState<string | null>(null)
 
   function close() {
     setOpen(false)
     setError(null)
+    setAuthorizationUrl(null)
   }
 
   async function handleSimulate() {
     setSubmitting(true)
     setError(null)
+    setAuthorizationUrl(null)
     try {
       const res = await fetch(
         `/api/customers/${customerId}/subscriptions/${subscriptionId}/simulate-renewal`,
@@ -42,9 +45,16 @@ export function SubscriptionSimulateRenewalAction({
           body: JSON.stringify({}),
         },
       )
-      const data = await res.json()
+      const body = await res.json()
       if (!res.ok) {
-        setError(data?.message ?? 'Failed to simulate renewal.')
+        setError(body?.message ?? 'Failed to simulate renewal.')
+        return
+      }
+      const authUrl = body?.data?.authorization_required as string | null | undefined
+      if (authUrl) {
+        // First-ever charge on this subscription — PayMongo test mode
+        // requires a one-time manual Authorize click, no headless bypass.
+        setAuthorizationUrl(authUrl)
         return
       }
       setOpen(false)
@@ -68,14 +78,31 @@ export function SubscriptionSimulateRenewalAction({
             <DialogTitle>Simulate a renewal for this subscription?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-zinc-600">
-            Dev-only: fires an on-demand PayMongo charge against this subscription and
-            auto-pays it with a test card. Only works if the subscription&apos;s plan was
-            created as an on-demand plan — otherwise PayMongo will return an error.
+            Dev-only: fires an on-demand PayMongo charge against this subscription. Only
+            works if the subscription&apos;s plan was created as an on-demand plan —
+            otherwise PayMongo will return an error. The very first charge on a
+            subscription needs a one-time manual authorization (PayMongo test mode has
+            no headless bypass for e-wallets); every renewal after that completes
+            automatically.
           </p>
+          {authorizationUrl && (
+            <p className="text-sm text-zinc-600">
+              One-time authorization needed:{' '}
+              <a
+                href={authorizationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                open and click Authorize
+              </a>
+              , then run Simulate Renewal again to confirm the payment went through.
+            </p>
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={close} disabled={submitting}>
-              Cancel
+              {authorizationUrl ? 'Close' : 'Cancel'}
             </Button>
             <Button onClick={handleSimulate} disabled={submitting}>
               {submitting ? 'Simulating…' : 'Simulate renewal'}
