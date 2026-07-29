@@ -4,6 +4,7 @@ import { StatusBadge } from '@/components/status-badge'
 import { PaymongoSyncBadge } from '@/components/customers-table'
 import { CustomerSyncButton } from '@/components/customer-sync-button'
 import { SubscriptionCancelAction } from '@/components/subscription-cancel-action'
+import { SubscriptionSimulateRenewalAction } from '@/components/subscription-simulate-renewal-action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -73,6 +74,7 @@ export default async function CustomerDetailPage({
   const detail = await api.get<CustomerDetail>(`/admin/customers/${id}`)
   const { customer, subscriptions, transactions } = detail
   const synced = customer.paymongo_customer_id !== null
+  const isDev = process.env.NODE_ENV === 'development'
 
   return (
     <div className="space-y-6">
@@ -151,7 +153,12 @@ export default async function CustomerDetailPage({
                       {formatDate(sub.period_start)} – {formatDate(sub.period_end)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <SubscriptionCancelAction customerId={customer.id} subscriptionId={sub.id} status={sub.status} />
+                      <div className="flex justify-end gap-2">
+                        {isDev && (
+                          <SubscriptionSimulateRenewalAction customerId={customer.id} subscriptionId={sub.id} />
+                        )}
+                        <SubscriptionCancelAction customerId={customer.id} subscriptionId={sub.id} status={sub.status} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
