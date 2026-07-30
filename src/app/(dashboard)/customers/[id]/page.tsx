@@ -5,6 +5,7 @@ import { PaymongoSyncBadge } from '@/components/customers-table'
 import { CustomerSyncButton } from '@/components/customer-sync-button'
 import { SubscriptionCancelAction } from '@/components/subscription-cancel-action'
 import { SubscriptionSimulateRenewalAction } from '@/components/subscription-simulate-renewal-action'
+import { SubscriptionSimulateSuspensionAction } from '@/components/subscription-simulate-suspension-action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -155,7 +156,10 @@ export default async function CustomerDetailPage({
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         {isDev && (
-                          <SubscriptionSimulateRenewalAction customerId={customer.id} subscriptionId={sub.id} />
+                          <>
+                            <SubscriptionSimulateSuspensionAction customerId={customer.id} subscriptionId={sub.id} />
+                            <SubscriptionSimulateRenewalAction customerId={customer.id} subscriptionId={sub.id} />
+                          </>
                         )}
                         <SubscriptionCancelAction customerId={customer.id} subscriptionId={sub.id} status={sub.status} />
                       </div>
