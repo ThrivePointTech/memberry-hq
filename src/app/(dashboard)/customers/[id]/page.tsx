@@ -3,6 +3,9 @@ import { formatPHP } from '@/lib/format'
 import { StatusBadge } from '@/components/status-badge'
 import { PaymongoSyncBadge } from '@/components/customers-table'
 import { CustomerSyncButton } from '@/components/customer-sync-button'
+import { SubscriptionCancelAction } from '@/components/subscription-cancel-action'
+import { SubscriptionSimulateRenewalAction } from '@/components/subscription-simulate-renewal-action'
+import { SubscriptionSimulateSuspensionAction } from '@/components/subscription-simulate-suspension-action'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -72,6 +75,7 @@ export default async function CustomerDetailPage({
   const detail = await api.get<CustomerDetail>(`/admin/customers/${id}`)
   const { customer, subscriptions, transactions } = detail
   const synced = customer.paymongo_customer_id !== null
+  const isDev = process.env.NODE_ENV === 'development'
 
   return (
     <div className="space-y-6">
@@ -132,6 +136,7 @@ export default async function CustomerDetailPage({
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Period</TableHead>
+                  <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -147,6 +152,17 @@ export default async function CustomerDetailPage({
                     </TableCell>
                     <TableCell className="text-zinc-500 text-sm">
                       {formatDate(sub.period_start)} – {formatDate(sub.period_end)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        {isDev && (
+                          <>
+                            <SubscriptionSimulateSuspensionAction customerId={customer.id} subscriptionId={sub.id} />
+                            <SubscriptionSimulateRenewalAction customerId={customer.id} subscriptionId={sub.id} />
+                          </>
+                        )}
+                        <SubscriptionCancelAction customerId={customer.id} subscriptionId={sub.id} status={sub.status} />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
