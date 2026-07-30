@@ -78,12 +78,11 @@ export function SubscriptionSimulateRenewalAction({
             <DialogTitle>Simulate a renewal for this subscription?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-zinc-600">
-            Dev-only: fires an on-demand PayMongo charge against this subscription. Only
-            works if the subscription&apos;s plan was created as an on-demand plan —
-            otherwise PayMongo will return an error. The very first charge on a
-            subscription needs a one-time manual authorization (PayMongo test mode has
-            no headless bypass for e-wallets); every renewal after that completes
-            automatically.
+            Dev-only: triggers a renewal charge against this subscription — an on-demand
+            charge for on-demand plans, or PayMongo&apos;s test-cycle (next billing cycle)
+            for scheduled plans. The very first charge on a subscription needs a
+            one-time manual authorization (PayMongo test mode has no headless bypass for
+            e-wallets); every renewal after that completes automatically.
           </p>
           {authorizationUrl && (
             <p className="text-sm text-zinc-600">
