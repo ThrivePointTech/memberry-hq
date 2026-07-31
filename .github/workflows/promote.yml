@@ -1,0 +1,44 @@
+name: Promote to Production
+
+# Manual gate: builds the chosen ref (default: main) in the CLI-only
+# production Vercel project with production env vars, then deploys it.
+# Staging (the git-connected -staging project) auto-deploys every push to
+# main; this workflow is how a staging delivery reaches production.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to build and deploy (default: main)"
+        required: false
+        default: main
+
+env:
+  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROD_PROJECT_ID }}
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: Production
+    concurrency: promote-production
+
+    steps:
+      - name: Checkout ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Pull production project settings
+        run: npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build with production env
+        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to production
+        run: npx vercel@latest deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
