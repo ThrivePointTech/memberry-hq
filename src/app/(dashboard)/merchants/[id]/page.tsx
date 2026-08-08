@@ -6,6 +6,7 @@ import { PlanManagement } from "@/components/plan-management";
 import { QrTile } from "@/components/qr-tile";
 import { PayoutAccountEdit } from "@/components/payout-account-edit";
 import { PaymongoCredentialsEdit } from "@/components/paymongo-credentials-edit";
+import { StaffList } from "@/components/staff-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -47,6 +48,25 @@ interface MerchantDetail {
 	subscription_counts: Record<string, number>;
 }
 
+interface MerchantStaff {
+	id: string;
+	user_id: string | null;
+	name: string;
+	gcash_phone: string;
+	contact_phone: string | null;
+	is_active: boolean;
+	created_at: string;
+}
+
+interface MerchantStaffInvite {
+	id: string;
+	staff_id: string | null;
+	invite_code: string;
+	expires_at: string;
+	used_at: string | null;
+	created_at: string;
+}
+
 export default async function MerchantDetailPage({
 	params,
 }: {
@@ -58,7 +78,11 @@ export default async function MerchantDetailPage({
 		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 	if (!UUID_RE.test(id)) notFound();
 
-	const detail = await api.get<MerchantDetail>(`/admin/merchants/${id}/detail`);
+	const [detail, staff, staffInvites] = await Promise.all([
+		api.get<MerchantDetail>(`/admin/merchants/${id}/detail`),
+		api.get<MerchantStaff[]>(`/admin/merchants/${id}/staff`),
+		api.get<MerchantStaffInvite[]>(`/admin/merchants/${id}/staff-invites`),
+	]);
 	const {
 		merchant,
 		plans,
@@ -167,6 +191,8 @@ export default async function MerchantDetailPage({
 			</div>
 
 			<PlanManagement plans={plans} merchantId={merchant.id} />
+
+			<StaffList staff={staff} invites={staffInvites} />
 
 			<div>
 				<h2 className="text-base font-semibold mb-4">Store QR</h2>
